@@ -1,43 +1,76 @@
-// Estado Global de la aplicación
-let isAdmin = false;
-let cart = [];
-
-// El orden de navegación solicitado: 1, 2, 3, 4, 5, 6, 5, 4, 3, 2 (y vuelve a 1)
-// Los números corresponden a los índices del Array de imágenes (0 a 5)
-const navigationSequence = [0, 1, 2, 3, 4, 5, 4, 3, 2, 1];
-
-// Productos Iniciales de Ejemplo
-let products = [
-    {
-        id: 1,
-        title: "Producto Ejemplo 1",
-        price: 1500,
-        description: "Descripción del producto de prueba con carrusel dinámico.",
-        images: Array(6).fill("").map((_, i) => `https://placehold.co{i+1}`),
-        currentSeqIndex: 0
-    }
-];
-
-// Inicializar la tienda al cargar la página
-window.onload = function() {
-    renderProducts();
+// =========================================================================
+// 🔥 CONFIGURACIÓN DE APIS (Firebase de Luis + Nube Gratuita de ImgBB)
+// =========================================================================
+const firebaseConfig = {
+    apiKey: "AIzaSyCd5_9Ubvw9ggRNfHa-NpVs43XRNEjp-M",
+    authDomain: "tienda-1989.firebaseapp.com",
+    projectId: "tienda-1989",
+    storageBucket: "tienda-1989.firebasestorage.app",
+    messagingSenderId: "819818779178",
+    appId: "1:819818779178:web:d6c57a7eef59df3905e953",
+    measurementId: "G-XRFEZLJCCS"
 };
 
-// Renderizar Tarjetas de Productos
+// Inicializar Firebase Firestore (Base de datos en la nube)
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// 🔑 TU CLAVE REAL DE IMGBB YA INTEGRADA:
+const IMGBB_API_KEY = "9c49c9b30f92b50ab36b6b0eae52152c";
+
+// 📱 CONFIGURÁ AQUÍ TU TELÉFONO REAL DE WHATSAPP (Solo números, con tu código de país)
+const TELEFONO_WHATSAPP = "5491100000000"; 
+
+// =========================================================================
+// 🛒 ESTADO GLOBAL DE LA APLICACIÓN
+// =========================================================================
+let isAdmin = false;
+let cart = [];
+let products = []; 
+
+// Tu secuencia exacta de navegación de imágenes corregida y completada
+const navigationSequence = [0,1,2,3,4,5,6,5,4,3,2,1,0]; // 👈 Reparado aquí
+
+// Al cargar la página, escuchar la Base de Datos en tiempo real
+window.onload = function() {
+    escucharProductos();
+};
+
+// Escuchar productos en tiempo real desde la nube
+function escucharProductos() {
+    db.collection("productos").onSnapshot((snapshot) => {
+        products = [];
+        snapshot.forEach((doc) => {
+            let data = doc.data();
+            data.docId = doc.id; 
+            products.push(data);
+        });
+        
+        if (products.length === 0) {
+            crearProductoInicialDePrueba();
+        } else {
+            renderProducts();
+        }
+    }, (error) => {
+        console.error("Error en Firestore (reglas bloqueadas):", error);
+    });
+}
+
+// ====== RENDERIZADO DE PRODUCTOS ======
 function renderProducts() {
     const grid = document.getElementById('products-grid');
     if (!grid) return;
     grid.innerHTML = '';
 
     products.forEach((product, pIndex) => {
-        const activeImageIndex = navigationSequence[product.currentSeqIndex];
+        const activeImageIndex = navigationSequence[product.currentSeqIndex || 0];
         const currentImgSrc = product.images[activeImageIndex] || "https://placehold.co";
 
         const card = document.createElement('div');
         card.className = `card ${isAdmin ? 'edit-mode' : ''}`;
 
         card.innerHTML = `
-            <button class="btn-delete" style="display: ${isAdmin ? 'block' : 'none'}" onclick="deleteProduct(${product.id})">&times;</button>
+            <button class="btn-delete" style="display: ${isAdmin ? 'block' : 'none'}" onclick="deleteProduct('${product.docId}')">&times;</button>
             
             <div class="carousel">
                 <button class="carousel-btn btn-prev" onclick="navigateCarousel(${pIndex}, -1)">&lsaquo;</button>
@@ -45,19 +78,20 @@ function renderProducts() {
                 <button class="carousel-btn btn-next" onclick="navigateCarousel(${pIndex}, 1)">&rsaquo;</button>
             </div>
 
-            <div class="file-upload-container" style="display: ${isAdmin ? 'block' : 'none'}">
-                <label>Cambiar foto ${activeImageIndex + 1}:</label>
-                <input type="file" accept="image/*" onchange="uploadImage(event, ${pIndex}, ${activeImageIndex})">
+            <!-- 📸 BOTÓN DE SUBIDA DIRECTA DESDE LA COMPUTADORA -->
+            <div class="file-upload-container" style="display: ${isAdmin ? 'block' : 'none'}; margin-top: 10px; padding: 0 10px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 4px; font-size: 13px;">Cambiar foto ${activeImageIndex + 1}:</label>
+                <input type="file" accept="image/*" onchange="uploadImageDirect(event, ${pIndex}, ${activeImageIndex})" style="font-size: 12px; width: 100%;">
             </div>
 
             <div class="card-body">
-                <input type="text" class="prod-title" value="${product.title}" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField(${pIndex}, 'title', this.value)">
+                <input type="text" class="prod-title" value="${product.title}" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField('${product.docId}', 'title', this.value)">
                 
                 <div class="prod-price-wrapper">
-                    <input type="number" class="prod-price" value="${product.price}" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField(${pIndex}, 'price', this.value)">
+                    <input type="number" class="prod-price" value="${product.price}" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField('${product.docId}', 'price', this.value)">
                 </div>
                 
-                <textarea class="prod-desc" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField(${pIndex}, 'description', this.value)">${product.description}</textarea>
+                <textarea class="prod-desc" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField('${product.docId}', 'description', this.value)">${product.description}</textarea>
                 <button class="btn-buy" style="display: ${isAdmin ? 'none' : 'block'}" onclick="addToCart(${pIndex})">Comprar</button>
             </div>
         `;
@@ -65,11 +99,9 @@ function renderProducts() {
     });
 }
 
-
-
-// Navegación del Carrusel en Secuencia
+// Navegación del Carrusel
 function navigateCarousel(productIndex, direction) {
-    let seqIndex = products[productIndex].currentSeqIndex;
+    let seqIndex = products[productIndex].currentSeqIndex || 0;
     seqIndex += direction;
 
     if (seqIndex >= navigationSequence.length) seqIndex = 0;
@@ -79,22 +111,48 @@ function navigateCarousel(productIndex, direction) {
     renderProducts();
 }
 
-// Subir Imagen desde la Computadora
-function uploadImage(event, productIndex, imageIndex) {
+// 🔥 FUNCIÓN DE SUBIDA AUTOMÁTICA A IMGBB Y GUARDADO EN FIREBASE
+function uploadImageDirect(event, productIndex, imageIndex) {
     const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            products[productIndex].images[imageIndex] = e.target.result;
-            renderProducts();
-        };
-        reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    alert("Subiendo imagen a internet de forma segura... Por favor espera.");
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    fetch(`https://imgbb.com{IMGBB_API_KEY}`, {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            const urlSubida = result.data.url; 
+            const product = products[productIndex];
+            let nuevasImagenes = [...product.images];
+            nuevasImagenes[imageIndex] = urlSubida;
+
+            db.collection("productos").doc(product.docId).update({
+                images: nuevasImagenes
+            }).then(() => {
+                alert("¡Imagen guardada en internet con éxito!");
+            });
+        } else {
+            alert("Error de ImgBB: " + result.error.message);
+        }
+    })
+    .catch(error => {
+        alert("Error de conexión: " + error.message);
+    });
 }
 
-// Actualizar campos de texto en tiempo real (Modo Admin)
-function updateProductField(index, field, value) {
-    products[index][field] = field === 'price' ? parseFloat(value) || 0 : value;
+// Actualizar textos o precios en la nube
+function updateProductField(docId, field, value) {
+    let finalValue = field === 'price' ? parseFloat(value) || 0 : value;
+    db.collection("productos").doc(docId).update({
+        [field]: finalValue
+    });
 }
 
 // Sistema de Login de Administrador
@@ -119,126 +177,60 @@ function logoutAdmin() {
     renderProducts();
 }
 
-// Agregar Nueva Tarjeta
+// Agregar Tarjeta Nueva en la Nube
 function addNewProduct() {
-    const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
-    products.push({
-        id: newId,
+    const nextId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
+    db.collection("productos").add({
+        id: nextId,
         title: "Nuevo Producto",
         price: 0,
         description: "Escribe una descripción aquí.",
-        images: Array(6).fill("").map((_, i) => `https://placehold.co{i+1}`),
+        images: Array(7).fill("https://placehold.co"),
         currentSeqIndex: 0
     });
-    renderProducts();
 }
 
-// Eliminar Tarjeta
-function deleteProduct(id) {
+// Eliminar Tarjeta de la Nube
+function deleteProduct(docId) {
     if(confirm("¿Estás seguro de eliminar este producto?")) {
-        products = products.filter(p => p.id !== id);
-        renderProducts();
+        db.collection("productos").doc(docId).delete();
     }
 }
 
-// Funciones de Zoom
-function openZoom(src) {
-    document.getElementById('zoomed-img').src = src;
-    document.getElementById('zoom-modal').style.display = 'flex';
+// Crear un producto base si la base de datos de Google inicia en blanco
+function crearProductoInicialDePrueba() {
+    db.collection("productos").add({
+        id: 1,
+        title: "Producto Ejemplo 1",
+        price: 1500,
+        description: "Descripción del producto de prueba con carrusel dinámico.",
+        images: Array(7).fill("").map((_, i) => `https://placehold.co{i+1}`),
+        currentSeqIndex: 0
+    }).then(() => {
+        console.log("¡Producto base creado con éxito!");
+    }).catch((error) => {
+        console.error("Error al crear producto de prueba: ", error);
+    });
+}
+
+// Funciones añadidas para abrir/cerrar carrito y zoom modales
+function openCart() {
+    const modal = document.getElementById('cart-modal');
+    if (modal) modal.style.display = 'block';
+}
+function closeCart() {
+    const modal = document.getElementById('cart-modal');
+    if (modal) modal.style.display = 'none';
+}
+function openZoom(imgSrc) {
+    const modal = document.getElementById('zoom-modal');
+    const zoomedImg = document.getElementById('zoomed-img');
+    if (modal && zoomedImg) {
+        zoomedImg.src = imgSrc;
+        modal.style.display = 'block';
+    }
 }
 function closeZoom() {
-    document.getElementById('zoom-modal').style.display = 'none';
+    const modal = document.getElementById('zoom-modal');
+    if (modal) modal.style.display = 'none';
 }
-
-// Funciones del Carrito de Compras
-function addToCart(index) {
-    const prod = products[index];
-    cart.push({ title: prod.title, price: prod.price });
-    document.getElementById('cart-count').innerText = cart.length;
-    alert(`"${prod.title}" ha sido agregado a tus compras.`);
-}
-function openCart() {
-    const container = document.getElementById('cart-items-container');
-    if (!container) return;
-    container.innerHTML = '';
-    let total = 0;
-
-    if(cart.length === 0) {
-        container.innerHTML = '<p>El carrito está vacío.</p>';
-    } else {
-        cart.forEach((item, index) => {
-            total += item.price;
-            const row = document.createElement('div');
-            row.className = 'cart-item';
-            
-            // Aquí está el signo pesos ($) agregado directamente al texto dinámico
-            row.innerHTML = `
-                <span>${item.title}</span> 
-                <div>
-                    <strong>$${item.price}</strong>
-                    <button onclick="removeFromCart(${index})" style="background:#dc3545; color:white; margin-left:10px; padding:2px 8px; border-radius:3px; border:none; cursor:pointer;">X</button>
-                </div>
-            `;
-            container.appendChild(row);
-        });
-    }
-    document.getElementById('cart-total-price').innerText = total;
-    document.getElementById('cart-modal').style.display = 'flex';
-}
-
-
-function closeCart() {
-    document.getElementById('cart-modal').style.display = 'none';
-}
-
-function removeFromCart(index) {
-    cart.splice(index, 1); 
-    document.getElementById('cart-count').innerText = cart.length; 
-    openCart(); 
-}
-
-// Mandar lista por Mail
-function sendCartByEmail() {
-    if(cart.length === 0) {
-        alert("No tienes productos en tu carrito.");
-        return;
-    }
-    const correoDestino = "bralemsa@gmail.com";
-    let bodyText = "Hola, quiero realizar este pedido:\n\n";
-    let total = 0;
-
-    cart.forEach((item, idx) => {
-        bodyText += `- ${idx + 1}. ${item.title} - $${item.price}\n`;
-        total += item.price;
-    });
-    
-    bodyText += `\nTotal: $${total.toLocaleString('es-ar')}`;
-
-    const asunto = encodeURIComponent("Quiero realizar este pedido");
-    const cuerpo = encodeURIComponent(bodyText);
-
-    window.location.href = `mailto:${correoDestino}?subject=${asunto}&body=${cuerpo}`;
-}
-
-// Mandar lista por WhatsApp
-function sendWhatsapp() {
-    if (cart.length === 0) {
-        alert("No tienes productos en tu carrito.");
-        return;
-    }
-    const telefono = "5491100000000"; // Reemplaza por tu número de teléfono real
-    let bodyText = "Hola, quiero realizar este pedido:\n\n";
-    let total = 0;
-
-    cart.forEach((item, idx) => {
-        bodyText += `* ${idx + 1}. ${item.title} - $${item.price}\n`;
-        total += item.price;
-    });
-    
-    bodyText += `\n*Total: $${total.toLocaleString('es-ar')}*`;
-    
-    const url = `https://wa.me{telefono}?text=${encodeURIComponent(bodyText)}`;
-    window.open(url, "_blank");
-}
-
-
