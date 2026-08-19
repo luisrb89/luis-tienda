@@ -2,8 +2,8 @@
 // 🔥 CONFIGURACIÓN DE APIS (Firebase de Luis + Nube Gratuita de ImgBB)
 // =========================================================================
 const firebaseConfig = {
-    apiKey: "//console.firebase.google.com/project/tienda-1989/overview?hl=es-419yCd5_9Ubvw9ggRNfHa-NpVIs43XRNEjp-M",
-    authDomain: ":",
+    apiKey: "AIzaSyCd5_9Ubvw9ggRNfHa-NpVs43XRNEjp-M",
+    authDomain: "tienda-1989.firebaseapp.com",
     projectId: "tienda-1989",
     storageBucket: "tienda-1989.firebasestorage.app",
     messagingSenderId: "819818779178",
@@ -119,7 +119,7 @@ function uploadImageDirect(event, productIndex, imageIndex) {
     const formData = new FormData();
     formData.append("image", file);
 
-    // Mandamos la foto de tu computadora a los servidores de ImgBB
+    // Mandamos la foto de tu computadora a los servidores de ImgBB con el endpoint correcto
     fetch(`https://imgbb.com{IMGBB_API_KEY}`, {
         method: "POST",
         body: formData
@@ -127,7 +127,7 @@ function uploadImageDirect(event, productIndex, imageIndex) {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            const urlSubida = result.data.url; // Obtenemos el link web limpio
+            const urlSubida = result.data.url; 
             const product = products[productIndex];
             let nuevasImagenes = [...product.images];
             nuevasImagenes[imageIndex] = urlSubida;
@@ -169,6 +169,7 @@ function loginAdmin() {
     }
 }
 
+// Cerrar sesión de Administrador
 function logoutAdmin() {
     isAdmin = false;
     document.getElementById('admin-panel').style.display = 'none';
@@ -185,7 +186,7 @@ function addNewProduct() {
         title: "Nuevo Producto",
         price: 0,
         description: "Escribe una descripción aquí.",
-        images: Array(7).fill("https://placehold.co?text=Nueva+Imagen"),
+        images: Array(7).fill("https://placehold.co"),
         currentSeqIndex: 0
     });
 }
@@ -204,8 +205,12 @@ function crearProductoInicialDePrueba() {
         title: "Producto Ejemplo 1",
         price: 1500,
         description: "Descripción del producto de prueba con carrusel dinámico.",
-        images: Array(7).fill("").map((_, i) => `https://placehold.co?text=Imagen+${i+1}`),
+        images: Array(7).fill("").map((_, i) => `https://placehold.co{i+1}`),
         currentSeqIndex: 0
+    }).then(() => {
+        console.log("¡Producto inicial creado de prueba!");
+    }).catch(error => {
+        console.error("Error al crear el producto inicial: ", error);
     });
 }
 
