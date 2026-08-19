@@ -1,0 +1,320 @@
+/* Estilos Generales */
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: Arial, sans-serif; 
+}
+body { 
+    background-color: #f4f4f9; 
+    color: #333; 
+    display: flex; 
+    flex-direction: column; 
+    min-height: 100vh; 
+}
+button { 
+    cursor: pointer; 
+    padding: 8px 12px; 
+    border: none; 
+    border-radius: 4px; 
+    font-weight: bold; 
+}
+
+/* Rediseño del Encabezado */
+header { 
+    display: flex; 
+    flex-direction: column; 
+    background-color: #fff; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+}
+
+/* Fila Superior: Logo y Botones */
+.header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 30px;
+    width: 100%;
+}
+.logo-container img { 
+    height: 50px; 
+    width: auto; 
+    max-width: 120px; 
+    object-fit: contain; 
+}
+.nav-buttons { 
+    display: flex; 
+    gap: 10px; 
+}
+/* Resaltador dinámico para el icono del carrito en el header */
+.btn-cart {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px; /* Separa el círculo del texto */
+    padding: 6px 16px 6px 8px; /* Ajusta los márgenes internos */
+}
+
+.cart-icon {
+    background-color: white;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%; /* Lo hace un círculo perfecto */
+    font-size: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.btn-admin { background-color: #007bff; color: white; }
+.btn-logout { background-color: #dc3545; color: white; display: none; }
+
+/* Fila Inferior: Título centrado abajo */
+/* Fila Inferior: Título centrado con fondo blanco limpio */
+.header-bottom {
+    text-align: center;
+    padding: 15px 0 20px 0;
+    background-color:#212529 ; /* Cambiado a blanco para integrarse perfectamente */
+    border-top: none; /* Quitamos la línea que generaba el recuadro */
+}
+
+header h2{ 
+    font-size: 28px; 
+    color:white ; /* Gris oscuro elegante */
+    font-weight: 800; /* Le da más presencia y grosor */
+    margin: 0;
+    letter-spacing: 0.5px; /* Separa mínimamente las letras para que se lea mejor */
+}
+
+
+/* Contenido Principal */
+main { 
+    flex: 1; 
+    padding: 30px; 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    width: 100%; 
+}
+.admin-panel { 
+    background: #fff; 
+    padding: 20px; 
+    border-radius: 8px; 
+    margin-bottom: 20px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+    display: none; 
+}
+.btn-add { background-color: #17a2b8; color: white; font-size: 16px; }
+
+/* Grilla de Productos */
+.products-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+    gap: 25px; 
+}
+
+/* Tarjeta de Producto */
+.card { 
+    background: white; 
+    border-radius: 8px; 
+    overflow: hidden; 
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08); 
+    display: flex; 
+    flex-direction: column; 
+    position: relative; 
+    padding: 15px; 
+}
+
+.btn-delete { 
+    position: absolute; 
+    top: 10px; 
+    right: 10px; 
+    background: #dc3545; 
+    color: white; 
+    border-radius: 50%; 
+    width: 30px; 
+    height: 30px; 
+    padding: 0; 
+    display: none; 
+    z-index: 10; 
+}
+
+/* Carrusel */
+.carousel { 
+    position: relative; 
+    width: 100%; 
+    height: 200px; 
+    background: #eee; 
+    border-radius: 6px; 
+    overflow: hidden; 
+}
+.carousel-img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    cursor: zoom-in; 
+}
+.carousel-btn { 
+    position: absolute; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    background: rgba(0,0,0,0.5); 
+    color: white; 
+    border-radius: 50%; 
+    width: 32px; 
+    height: 32px; 
+    padding: 0; 
+    font-size: 18px; 
+}
+.btn-prev { left: 8px; }
+.btn-next { right: 8px; }
+
+/* Detalles de Tarjeta */
+.card-body { 
+    padding: 15px 0 0 0; 
+    display: flex; 
+    flex-direction: column; 
+    flex-grow: 1; 
+}
+.prod-title, .prod-desc { 
+    border: 1px solid transparent; 
+    width: 100%; 
+    padding: 4px; 
+    font-size: 16px; 
+    background: transparent; 
+}
+.prod-title { font-weight: bold; font-size: 18px; }
+.prod-desc { font-size: 14px; color: #666; resize: none; height: 60px; }
+.edit-mode input, .edit-mode textarea { border-color: #ccc; background: #fff; }
+.file-upload-container { margin-top: 10px; display: none; font-size: 12px; }
+.btn-buy { background-color: #ffc107; color: #212529; width: 100%; margin-top: auto; font-size: 16px; }
+
+/* Signo Pesos en Tarjeta */
+.prod-price-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 5px 0;
+}
+.prod-price-wrapper::before {
+    content: "$";
+    color: #28a745;
+    font-weight: bold;
+    font-size: 20px;
+    margin-right: 2px;
+}
+.prod-price { 
+    color: #28a745; 
+    font-weight: bold; 
+    font-size: 20px; 
+    border: none;
+    background: transparent;
+    width: 100%;
+}
+
+.card-body input:disabled, 
+.card-body textarea:disabled {
+    color: #333;
+    background: transparent;
+    border: none;
+    cursor: default;
+    opacity: 1;
+    -webkit-text-fill-color: #333;
+}
+.prod-price:disabled {
+    color: #28a745 !important;
+}
+
+/* Footer */
+footer { 
+    background-color: #222; 
+    color: #bbb; 
+    padding: 20px 30px; 
+    text-align: center; 
+    font-size: 14px; 
+    margin-top: auto; 
+}
+.footer-content { 
+    display: flex; 
+    flex-wrap: wrap; 
+    justify-content: space-around; 
+    max-width: 1000px; 
+    margin: 0 auto; 
+    gap: 15px; 
+}
+.footer-section a { color: #fff; text-decoration: none; margin: 0 5px; }
+
+/* Modales */
+.modal { 
+    display: none; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0,0,0,0.7); 
+    z-index: 1000; 
+    justify-content: center; 
+    align-items: center; 
+}
+.modal-content { 
+    background: white; 
+    padding: 25px; 
+    border-radius: 8px; 
+    max-width: 500px; 
+    width: 90%; 
+    position: relative; 
+    max-height: 85vh; 
+    overflow-y: auto; 
+}
+.zoom-content { background: transparent; max-width: 80%; max-height: 80%; }
+.zoom-content img { max-width: 100%; max-height: 80vh; object-fit: contain; }
+.close-modal { position: absolute; top: 10px; right: 15px; font-size: 28px; cursor: pointer; color: #000; }
+.zoom-content .close-modal { color: #fff; top: -30px; right: 0; }
+
+/* Botones Carrito */
+.cart-item { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 10px 0; 
+    border-bottom: 1px solid #eee; 
+}
+.cart-total { 
+    font-size: 18px; 
+    font-weight: bold; 
+    text-align: right; 
+    margin: 15px 0; 
+}
+.btnwhatsapp { 
+    display: block;
+    width: 100%;
+    background-color: #25d366;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 12px 0;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+}
+.btnwhatsapp:hover {
+    background-color: #128c7e;
+}
+.btn-email { 
+    background-color: transparent; 
+    color: #007bff; 
+    width: 100%; 
+    font-size: 14px; 
+    padding: 8px 0;
+    margin-top: 10px;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+}
+.btn-email:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+
+
+
+

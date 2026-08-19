@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Tienda Online</title>
+    <!-- Vinculación del archivo CSS externo -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+       <!-- Encabezado Organizado -->
+    <header>
+        <div class="header-top">
+            <div class="logo-container">
+                <img src="imagenes/logo.png" alt="Logo" onerror="this.src='https://placehold.co'">
+            </div>
+            <div class="nav-buttons">
+                <button class="btn-cart" onclick="openCart()">
+    <span class="cart-icon">🛒</span> Mis Compras (<span id="cart-count">1</span>)
+</button>
+                <button class="btn-admin" id="btn-login" onclick="loginAdmin()">Entrar</button>
+                <button class="btn-logout" id="btn-logout" onclick="logoutAdmin()">Salir Admin</button>
+            </div>
+        </div>
+        <div class="header-bottom">
+            <h2>Mi Tienda Online</h2>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main>
+        <div class="admin-panel" id="admin-panel">
+            <button class="btn-add" onclick="addNewProduct()">+ Agregar Tarjeta de Producto</button>
+        </div>
+        <div class="products-grid" id="products-grid"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section"><strong>Dirección:</strong> Av. Principal 1234, Ciudad</div>
+            <div class="footer-section"><strong>Email:</strong> contacto@mitienda.com</div>
+            <div class="footer-section"><strong>Celular:</strong> +123 456 7890</div>
+            <div class="footer-section"><strong>Redes:</strong> <a href="#">Facebook</a> | <a href="#">Instagram</a></div>
+        </div>
+    </footer>
+
+    <!-- Modal de Zoom de Imagen -->
+    <div id="zoom-modal" class="modal" onclick="closeZoom()">
+        <div class="modal-content zoom-content">
+            <span class="close-modal" onclick="closeZoom()">&times;</span>
+            <img id="zoomed-img" src="" alt="Zoom">
+        </div>
+    </div>
+
+       <!-- Modal de Carrito de Compras -->
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeCart()">&times;</span>
+            <h2>Mis Compras</h2>
+            <div id="cart-items-container" style="margin-top: 15px;"></div>
+            <div class="cart-total">Total: $<span id="cart-total-price">0</span></div>
+            
+            <!-- Primero el botón de WhatsApp -->
+            <button id="btnwhatsapp" class="btnwhatsapp" onclick="sendWhatsapp()">Enviar por WhatsApp</button>
+            
+            <!-- Segundo el botón de Email -->
+            <button id="btn-Email" class="btn-email" onclick="sendCartByEmail()">Mandar lista por Mail</button>
+        </div>
+    </div>
+         <!-- Librerías de Google Firebase -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+    
+    <!-- Tu archivo original de script (Debe quedar ABAJO de Firebase) -->
+    <script src="script.js"></script>
+
+</body>
+</html>
+
+
+
+
+
+
