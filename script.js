@@ -2,8 +2,8 @@
 // 🔥 CONFIGURACIÓN DE APIS (Firebase de Luis + Nube Gratuita de ImgBB)
 // =========================================================================
 const firebaseConfig = {
-    apiKey: "AIzaSyCd5_9Ubvw9ggRNfHa-NpVIs43XRNEjp-M",
-    authDomain: "://firebaseapp.com",
+    apiKey: "//console.firebase.google.com/project/tienda-1989/overview?hl=es-419yCd5_9Ubvw9ggRNfHa-NpVIs43XRNEjp-M",
+    authDomain: ":",
     projectId: "tienda-1989",
     storageBucket: "tienda-1989.firebasestorage.app",
     messagingSenderId: "819818779178",
