@@ -3,7 +3,7 @@
 // =========================================================================
 const firebaseConfig = {
     apiKey: "AIzaSyCd5_9Ubvw9ggRNfHa-NpVs43XRNEjp-M",
-    authDomain: "tienda-1989.firebaseapp.com",
+    authDomain: "://firebaseapp.com",
     projectId: "tienda-1989",
     storageBucket: "tienda-1989.firebasestorage.app",
     messagingSenderId: "819818779178",
@@ -11,26 +11,24 @@ const firebaseConfig = {
     measurementId: "G-XRFEZLJCCS"
 };
 
-// Inicializar Firebase Firestore (Base de datos en la nube)
-firebase.initializeApp(firebaseConfig);
+// Inicializar Firebase (Asegúrate de cargar las librerías 'compat' en tu HTML)
+const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 🔑 TU CLAVE REAL DE IMGBB YA INTEGRADA:
+// 🔑 CLAVE DE IMGBB INTEGRADA Y CORREGIDA
 const IMGBB_API_KEY = "9c49c9b30f92b50ab36b6b0eae52152c";
 
-// 📱 CONFIGURÁ AQUÍ TU TELÉFONO REAL DE WHATSAPP (Solo números, con tu código de país)
+// 📱 TELÉFONO DE WHATSAPP (Formato internacional sin caracteres especiales)
 const TELEFONO_WHATSAPP = "5491100000000"; 
 
 // =========================================================================
 // 🛒 ESTADO GLOBAL DE LA APLICACIÓN
 // =========================================================================
 let isAdmin = false;
-let cart = [];
 let products = []; 
 
-// Tu secuencia exacta de navegación de imágenes corregida y completada
-const navigationSequence = [0,1,2,3,4,5,6,5,4,3,2,1,0]; // 👈 Reparado aquí
-
+// Secuencia exacta de navegación de imágenes (Ida y vuelta por los 7 slots)
+const navigationSequence =[0,1,2,3,4,5,6,5,4,3,2,1,0];
 // Al cargar la página, escuchar la Base de Datos en tiempo real
 window.onload = function() {
     escucharProductos();
@@ -64,7 +62,7 @@ function renderProducts() {
 
     products.forEach((product, pIndex) => {
         const activeImageIndex = navigationSequence[product.currentSeqIndex || 0];
-        const currentImgSrc = product.images[activeImageIndex] || "https://placehold.co";
+        const currentImgSrc = (product.images && product.images[activeImageIndex]) || "https://placehold.co";
 
         const card = document.createElement('div');
         card.className = `card ${isAdmin ? 'edit-mode' : ''}`;
@@ -74,7 +72,7 @@ function renderProducts() {
             
             <div class="carousel">
                 <button class="carousel-btn btn-prev" onclick="navigateCarousel(${pIndex}, -1)">&lsaquo;</button>
-                <img class="carousel-img" src="${currentImgSrc}" onclick="openZoom('${currentImgSrc}')" alt="Producto">
+                <img class="carousel-img" src="${currentImgSrc}" onclick="openZoom('${currentImgSrc}')" alt="Producto" style="cursor: pointer;">
                 <button class="carousel-btn btn-next" onclick="navigateCarousel(${pIndex}, 1)">&rsaquo;</button>
             </div>
 
@@ -85,13 +83,13 @@ function renderProducts() {
             </div>
 
             <div class="card-body">
-                <input type="text" class="prod-title" value="${product.title}" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField('${product.docId}', 'title', this.value)">
+                <input type="text" class="prod-title" value="${product.title || ''}" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField('${product.docId}', 'title', this.value)">
                 
                 <div class="prod-price-wrapper">
-                    <input type="number" class="prod-price" value="${product.price}" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField('${product.docId}', 'price', this.value)">
+                    <input type="number" class="prod-price" value="${product.price || 0}" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField('${product.docId}', 'price', this.value)">
                 </div>
                 
-                <textarea class="prod-desc" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField('${product.docId}', 'description', this.value)">${product.description}</textarea>
+                <textarea class="prod-desc" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField('${product.docId}', 'description', this.value)">${product.description || ''}</textarea>
                 <button class="btn-buy" style="display: ${isAdmin ? 'none' : 'block'}" onclick="addToCart(${pIndex})">Comprar</button>
             </div>
         `;
@@ -130,7 +128,11 @@ function uploadImageDirect(event, productIndex, imageIndex) {
         if (result.success) {
             const urlSubida = result.data.url; 
             const product = products[productIndex];
-            let nuevasImagenes = [...product.images];
+            let nuevasImagenes = product.images ? [...product.images] : [];
+            
+            while (nuevasImagenes.length < 7) {
+                nuevasImagenes.push("https://placehold.co");
+            }
             nuevasImagenes[imageIndex] = urlSubida;
 
             db.collection("productos").doc(product.docId).update({
@@ -139,7 +141,7 @@ function uploadImageDirect(event, productIndex, imageIndex) {
                 alert("¡Imagen guardada en internet con éxito!");
             });
         } else {
-            alert("Error de ImgBB: " + result.error.message);
+            alert("Error de ImgBB: " + (result.error ? result.error.message : "Fallo en la carga"));
         }
     })
     .catch(error => {
@@ -153,6 +155,36 @@ function updateProductField(docId, field, value) {
     db.collection("productos").doc(docId).update({
         [field]: finalValue
     });
+}
+
+// 🛒 ENVIAR DETALLES DEL PRODUCTO DIRECTO AL WHATSAPP DEL VENDEDOR
+function addToCart(productIndex) {
+    const product = products[productIndex];
+    if (!product) return;
+
+    const mensaje = `¡Hola! Me interesa comprar el siguiente producto:\n\n` +
+                    `🛍️ *Producto:* ${product.title}\n` +
+                    `💰 *Precio:* $${product.price}\n` +
+                    `📝 *Detalles:* ${product.description}\n\n` +
+                    `¿Tienen stock disponible?`;
+
+    const mensajeCodificado = encodeURIComponent(mensaje);
+    const urlWhatsApp = `https://wa.me{TELEFONO_WHATSAPP}?text=${mensajeCodificado}`;
+    
+    window.open(urlWhatsApp, '_blank');
+}
+
+// 🔍 VISUALIZADOR MODAL / ZOOM BÁSICO PARA LAS IMÁGENES
+function openZoom(imgSrc) {
+    const zoomWindow = window.open();
+    if (zoomWindow) {
+        zoomWindow.document.write(`
+            <body style="background-color: #111; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh;">
+                <img src="${imgSrc}" style="max-width: 90%; max-height: 90vh; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+            </body>
+        `);
+        zoomWindow.document.title = "Vista ampliada del producto";
+    }
 }
 
 // Sistema de Login de Administrador
@@ -169,6 +201,7 @@ function loginAdmin() {
     }
 }
 
+// Sistema de Cierre de Sesión de Administrador
 function logoutAdmin() {
     isAdmin = false;
     document.getElementById('admin-panel').style.display = 'none';
@@ -206,31 +239,6 @@ function crearProductoInicialDePrueba() {
         description: "Descripción del producto de prueba con carrusel dinámico.",
         images: Array(7).fill("").map((_, i) => `https://placehold.co{i+1}`),
         currentSeqIndex: 0
-    }).then(() => {
-        console.log("¡Producto base creado con éxito!");
-    }).catch((error) => {
-        console.error("Error al crear producto de prueba: ", error);
     });
 }
 
-// Funciones añadidas para abrir/cerrar carrito y zoom modales
-function openCart() {
-    const modal = document.getElementById('cart-modal');
-    if (modal) modal.style.display = 'block';
-}
-function closeCart() {
-    const modal = document.getElementById('cart-modal');
-    if (modal) modal.style.display = 'none';
-}
-function openZoom(imgSrc) {
-    const modal = document.getElementById('zoom-modal');
-    const zoomedImg = document.getElementById('zoomed-img');
-    if (modal && zoomedImg) {
-        zoomedImg.src = imgSrc;
-        modal.style.display = 'block';
-    }
-}
-function closeZoom() {
-    const modal = document.getElementById('zoom-modal');
-    if (modal) modal.style.display = 'none';
-}
