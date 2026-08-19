@@ -29,7 +29,7 @@ let cart = [];
 let products = []; 
 
 // Tu secuencia exacta de navegación de imágenes corregida y completada
-const navigationSequence =[0,1,2,3,4,5,6,5,4,3,2,1,0];
+const navigationSequence = [0,1,2,3,4,5,6,5,4,3,2,1,0]; // 👈 Reparado aquí
 
 // Al cargar la página, escuchar la Base de Datos en tiempo real
 window.onload = function() {
@@ -51,6 +51,8 @@ function escucharProductos() {
         } else {
             renderProducts();
         }
+    }, (error) => {
+        console.error("Error en Firestore (reglas bloqueadas):", error);
     });
 }
 
@@ -119,7 +121,6 @@ function uploadImageDirect(event, productIndex, imageIndex) {
     const formData = new FormData();
     formData.append("image", file);
 
-    // Mandamos la foto de tu computadora a los servidores de ImgBB con el endpoint correcto
     fetch(`https://imgbb.com{IMGBB_API_KEY}`, {
         method: "POST",
         body: formData
@@ -132,7 +133,6 @@ function uploadImageDirect(event, productIndex, imageIndex) {
             let nuevasImagenes = [...product.images];
             nuevasImagenes[imageIndex] = urlSubida;
 
-            // Guardamos el link web en tu base de datos Firebase
             db.collection("productos").doc(product.docId).update({
                 images: nuevasImagenes
             }).then(() => {
@@ -169,7 +169,6 @@ function loginAdmin() {
     }
 }
 
-// Cerrar sesión de Administrador
 function logoutAdmin() {
     isAdmin = false;
     document.getElementById('admin-panel').style.display = 'none';
@@ -208,31 +207,21 @@ function crearProductoInicialDePrueba() {
         images: Array(7).fill("").map((_, i) => `https://placehold.co{i+1}`),
         currentSeqIndex: 0
     }).then(() => {
-        console.log("¡Producto inicial creado de prueba!");
-    }).catch(error => {
-        console.error("Error al crear el producto inicial: ", error);
+        console.log("¡Producto base creado con éxito!");
+    }).catch((error) => {
+        console.error("Error al crear producto de prueba: ", error);
     });
 }
 
-// Lógica de Carrito de Compras
-function addToCart(index) {
-    const prod = products[index];
-    cart.push({ title: prod.title, price: prod.price });
-    document.getElementById('cart-count').innerText = cart.length;
-    alert(`"${prod.title}" ha sido agregado a tus compras.`);
-}
-// Funciones para abrir y cerrar el Carrito (Agrégalas a tu script.js)
+// Funciones añadidas para abrir/cerrar carrito y zoom modales
 function openCart() {
     const modal = document.getElementById('cart-modal');
     if (modal) modal.style.display = 'block';
 }
-
 function closeCart() {
     const modal = document.getElementById('cart-modal');
     if (modal) modal.style.display = 'none';
 }
-
-// Funciones para el Zoom de imágenes
 function openZoom(imgSrc) {
     const modal = document.getElementById('zoom-modal');
     const zoomedImg = document.getElementById('zoomed-img');
@@ -241,75 +230,7 @@ function openZoom(imgSrc) {
         modal.style.display = 'block';
     }
 }
-
 function closeZoom() {
     const modal = document.getElementById('zoom-modal');
     if (modal) modal.style.display = 'none';
 }
-    if(cart.length === 0) {
-        container.innerHTML = '<p>El carrito está vacío.</p>';
-    } else {
-        cart.forEach((item, index) => {
-            total += item.price;
-            const row = document.createElement('div');
-            row.className = 'cart-item';
-            row.innerHTML = `
-                <span>${item.title}</span> 
-                <div>
-                    <strong>$${item.price}</strong>
-                    <button onclick="removeFromCart(${index})" style="background:#dc3545; color:white; margin-left:10px; padding:2px 8px; border-radius:3px; border:none; cursor:pointer;">X</button>
-                </div>
-            `;
-            container.appendChild(row);
-        });
-    }
-    document.getElementById('cart-total-price').innerText = total;
-    document.getElementById('cart-modal').style.display = 'flex';
-
-function closeCart() {
-    document.getElementById('cart-modal').style.display = 'none';
-}
-
-function removeFromCart(index) {
-    cart.splice(index, 1); 
-    document.getElementById('cart-count').innerText = cart.length; 
-    openCart(); 
-}
-
-// Enviar por WhatsApp
-function sendWhatsapp() {
-    if (cart.length === 0) {
-        alert("No tienes productos en tu carrito.");
-        return;
-    }
-    let bodyText = "Hola, quiero realizar este pedido:\n\n";
-    let total = 0;
-
-
-cart.forEach((item, idx) => {
-    bodyText += `* ${idx + 1}. ${item.title} - $${item.price}\n`;
-    total += item.price;
-});
-bodyText += `\n*Total: $${total.toLocaleString('es-ar')}*`;
-const url = `https://wa.me{TELEFONO_WHATSAPP}?text=${encodeURIComponent(bodyText)}`;
-window.open(url, "_blank");
-}
-
-// Enviar por Mail
-function sendCartByEmail() {
-if(cart.length === 0) {
-alert("No tienes productos en tu carrito.");
-return;
-}
-const correoDestino = "bralemsa@gmail.com";
-let bodyText = "Hola, quiero realizar este pedido:\n\n";
-let total = 0;
-cart.forEach((item, idx) => {
-bodyText += `- ${idx + 1}. ${item.title} - $${item.price}\n`;
-total += item.price;
-});
-bodyText += `\nTotal: $${total.toLocaleString('es-ar')}`;
-const asunto = encodeURIComponent("Quiero realizar este pedido");
-const cuerpo = encodeURIComponent(bodyText);
-window.location.href = `mailto:${correoDestino}?subject=${asunto}&body=${cuerpo}`;
-};
