@@ -1,9 +1,9 @@
 // =========================================================================
-// 🔥 CONFIGURACIÓN DE APIS (Firebase de Luis + Nube Gratuita de ImgBB)
+// CONFIGURACIÓN DE APIS
 // =========================================================================
 const firebaseConfig = {
-    apiKey: "AIzaSyCd5_9Ubvw9ggRNfHa-NpVs43XRNEjp-M",
-    authDomain: "://firebaseapp.com",
+    apiKey: "TU_API_KEY",
+    authDomain: "tienda-1989.firebaseapp.com",
     projectId: "tienda-1989",
     storageBucket: "tienda-1989.firebasestorage.app",
     messagingSenderId: "819818779178",
@@ -11,58 +11,52 @@ const firebaseConfig = {
     measurementId: "G-XRFEZLJCCS"
 };
 
-// Inicializar Firebase (Asegúrate de cargar las librerías 'compat' en tu HTML)
 const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 🔑 CLAVE DE IMGBB INTEGRADA Y CORREGIDA
-const IMGBB_API_KEY = "9c49c9b30f92b50ab36b6b0eae52152c";
-
-// 📱 TELÉFONO DE WHATSAPP (Formato internacional sin caracteres especiales)
-const TELEFONO_WHATSAPP = "5491100000000"; 
+const IMGBB_API_KEY = "TU_IMGBB_API_KEY";
+const TELEFONO_WHATSAPP = "5491100000000";
 
 // =========================================================================
-// 🛒 ESTADO GLOBAL DE LA APLICACIÓN
+// ESTADO GLOBAL
 // =========================================================================
 let isAdmin = false;
-let products = []; 
+let products = [];
 
-// Secuencia exacta de navegación de imágenes (Ida y vuelta por los 7 slots)
-const navigationSequence =[0,1,2,3,4,5,6,5,4,3,2,1,0];
-// Al cargar la página, escuchar la Base de Datos en tiempo real
-window.onload = function() {
+const navigationSequence = [0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1, 0];
+
+window.onload = function () {
     escucharProductos();
 };
 
-// Escuchar productos en tiempo real desde la nube
 function escucharProductos() {
     db.collection("productos").onSnapshot((snapshot) => {
         products = [];
         snapshot.forEach((doc) => {
             let data = doc.data();
-            data.docId = doc.id; 
+            data.docId = doc.id;
             products.push(data);
         });
-        
+
         if (products.length === 0) {
             crearProductoInicialDePrueba();
         } else {
             renderProducts();
         }
     }, (error) => {
-        console.error("Error en Firestore (reglas bloqueadas):", error);
+        console.error("Error en Firestore:", error);
     });
 }
 
-// ====== RENDERIZADO DE PRODUCTOS ======
 function renderProducts() {
     const grid = document.getElementById('products-grid');
     if (!grid) return;
+
     grid.innerHTML = '';
 
     products.forEach((product, pIndex) => {
         const activeImageIndex = navigationSequence[product.currentSeqIndex || 0];
-        const currentImgSrc = (product.images && product.images[activeImageIndex]) || "https://placehold.co";
+        const currentImgSrc = (product.images && product.images[activeImageIndex]) || "https://placehold.co/600x400?text=Sin+imagen";
 
         const card = document.createElement('div');
         card.className = `card ${isAdmin ? 'edit-mode' : ''}`;
@@ -76,7 +70,6 @@ function renderProducts() {
                 <button class="carousel-btn btn-next" onclick="navigateCarousel(${pIndex}, 1)">&rsaquo;</button>
             </div>
 
-            <!-- 📸 BOTÓN DE SUBIDA DIRECTA DESDE LA COMPUTADORA -->
             <div class="file-upload-container" style="display: ${isAdmin ? 'block' : 'none'}; margin-top: 10px; padding: 0 10px;">
                 <label style="font-weight: bold; display: block; margin-bottom: 4px; font-size: 13px;">Cambiar foto ${activeImageIndex + 1}:</label>
                 <input type="file" accept="image/*" onchange="uploadImageDirect(event, ${pIndex}, ${activeImageIndex})" style="font-size: 12px; width: 100%;">
@@ -97,7 +90,6 @@ function renderProducts() {
     });
 }
 
-// Navegación del Carrusel
 function navigateCarousel(productIndex, direction) {
     let seqIndex = products[productIndex].currentSeqIndex || 0;
     seqIndex += direction;
@@ -109,36 +101,36 @@ function navigateCarousel(productIndex, direction) {
     renderProducts();
 }
 
-// 🔥 FUNCIÓN DE SUBIDA AUTOMÁTICA A IMGBB Y GUARDADO EN FIREBASE
 function uploadImageDirect(event, productIndex, imageIndex) {
     const file = event.target.files[0];
     if (!file) return;
 
-    alert("Subiendo imagen a internet de forma segura... Por favor espera.");
+    alert("Subiendo imagen... Por favor espera.");
 
     const formData = new FormData();
     formData.append("image", file);
 
-    fetch(`https://imgbb.com{IMGBB_API_KEY}`, {
+    fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
         method: "POST",
         body: formData
     })
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            const urlSubida = result.data.url; 
+            const urlSubida = result.data.url;
             const product = products[productIndex];
             let nuevasImagenes = product.images ? [...product.images] : [];
-            
+
             while (nuevasImagenes.length < 7) {
-                nuevasImagenes.push("https://placehold.co");
+                nuevasImagenes.push("https://placehold.co/600x400?text=Sin+imagen");
             }
+
             nuevasImagenes[imageIndex] = urlSubida;
 
             db.collection("productos").doc(product.docId).update({
                 images: nuevasImagenes
             }).then(() => {
-                alert("¡Imagen guardada en internet con éxito!");
+                alert("¡Imagen guardada con éxito!");
             });
         } else {
             alert("Error de ImgBB: " + (result.error ? result.error.message : "Fallo en la carga"));
@@ -149,7 +141,6 @@ function uploadImageDirect(event, productIndex, imageIndex) {
     });
 }
 
-// Actualizar textos o precios en la nube
 function updateProductField(docId, field, value) {
     let finalValue = field === 'price' ? parseFloat(value) || 0 : value;
     db.collection("productos").doc(docId).update({
@@ -157,7 +148,6 @@ function updateProductField(docId, field, value) {
     });
 }
 
-// 🛒 ENVIAR DETALLES DEL PRODUCTO DIRECTO AL WHATSAPP DEL VENDEDOR
 function addToCart(productIndex) {
     const product = products[productIndex];
     if (!product) return;
@@ -169,12 +159,11 @@ function addToCart(productIndex) {
                     `¿Tienen stock disponible?`;
 
     const mensajeCodificado = encodeURIComponent(mensaje);
-    const urlWhatsApp = `https://wa.me{TELEFONO_WHATSAPP}?text=${mensajeCodificado}`;
-    
+    const urlWhatsApp = `https://wa.me/${TELEFONO_WHATSAPP}?text=${mensajeCodificado}`;
+
     window.open(urlWhatsApp, '_blank');
 }
 
-// 🔍 VISUALIZADOR MODAL / ZOOM BÁSICO PARA LAS IMÁGENES
 function openZoom(imgSrc) {
     const zoomWindow = window.open();
     if (zoomWindow) {
@@ -187,7 +176,6 @@ function openZoom(imgSrc) {
     }
 }
 
-// Sistema de Login de Administrador
 function loginAdmin() {
     const password = prompt("Ingrese la contraseña de administrador:");
     if (password === "admin123") {
@@ -201,7 +189,6 @@ function loginAdmin() {
     }
 }
 
-// Sistema de Cierre de Sesión de Administrador
 function logoutAdmin() {
     isAdmin = false;
     document.getElementById('admin-panel').style.display = 'none';
@@ -210,35 +197,31 @@ function logoutAdmin() {
     renderProducts();
 }
 
-// Agregar Tarjeta Nueva en la Nube
 function addNewProduct() {
-    const nextId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
+    const nextId = products.length ? Math.max(...products.map(p => p.id || 0)) + 1 : 1;
     db.collection("productos").add({
         id: nextId,
         title: "Nuevo Producto",
         price: 0,
         description: "Escribe una descripción aquí.",
-        images: Array(7).fill("https://placehold.co"),
+        images: Array(7).fill("https://placehold.co/600x400?text=Sin+imagen"),
         currentSeqIndex: 0
     });
 }
 
-// Eliminar Tarjeta de la Nube
 function deleteProduct(docId) {
-    if(confirm("¿Estás seguro de eliminar este producto?")) {
+    if (confirm("¿Estás seguro de eliminar este producto?")) {
         db.collection("productos").doc(docId).delete();
     }
 }
 
-// Crear un producto base si la base de datos de Google inicia en blanco
 function crearProductoInicialDePrueba() {
     db.collection("productos").add({
         id: 1,
         title: "Producto Ejemplo 1",
         price: 1500,
         description: "Descripción del producto de prueba con carrusel dinámico.",
-        images: Array(7).fill("").map((_, i) => `https://placehold.co{i+1}`),
+        images: Array(7).fill("").map((_, i) => `https://placehold.co/600x400?text=Foto+${i + 1}`),
         currentSeqIndex: 0
     });
 }
-
