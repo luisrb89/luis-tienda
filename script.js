@@ -11,8 +11,11 @@ let initialProducts = [
     }
 ];
 
-//let products = JSON.parse(localStorage.getItem('tienda_productos')) || initialProducts;
-let products = []; // Esto borra el pasado y obliga a todos los navegadores a mirar solo a Firebase
+// --- LOGICA DE ALMACENAMIENTO (LOCALSTORAGE) ---
+// Modificamos la línea 14 para que el array se quede quieto y espere 
+// a que la función de Firebase-db inyecte los datos de internet antes de dibujar.
+let products = (typeof products !== 'undefined' && products.length > 0) ? products : [];
+
 
 
 
