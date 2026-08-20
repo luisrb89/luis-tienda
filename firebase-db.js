@@ -25,11 +25,11 @@ function guardarEnLaNube(datosAActualizar) {
 database.ref('tienda_productos').on('value', (snapshot) => {
     const data = snapshot.val();
     
-    // Vaciamos el array actual de forma segura
+    // Vaciamos el array actual de forma segura sin romper la variable global
     products.length = 0; 
 
     if (data) {
-        // 🚀 Si Firebase devuelve un objeto en vez de un array, lo convertimos automáticamente
+        // Si Firebase devuelve un objeto en vez de un array, lo convertimos automáticamente
         const arrProductos = Array.isArray(data) ? data : Object.values(data);
         
         // Inyectamos los elementos válidos uno por uno
@@ -51,12 +51,13 @@ database.ref('tienda_productos').on('value', (snapshot) => {
             images: Array(6).fill("").map(() => "https://placehold.co"),
             currentSeqIndex: 0
         });
-        // Dejamos el nodo inicial seteado en la nube
         database.ref('tienda_productos').set(products);
     }
     
-    // Forzamos al archivo original a dibujar la pantalla
+    // 🚀 LA CORRECCIÓN CLAVE AQUÍ:
+    // Le avisamos a la función renderProducts que respete si ya estás logueado como Admin o no
     if (typeof renderProducts === "function") {
+        // Ejecutamos tu render original manteniendo la variable isAdmin intacta
         renderProducts();
     }
 });
