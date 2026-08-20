@@ -14,50 +14,62 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Función que manda datos hacia internet
+// Bandera de seguridad para evitar bucles de borrado al recargar la página
+let firebaseCargadoInicialmente = false;
+
+// Función que manda datos hacia internet (Solo guarda si hay datos reales)
 function guardarEnLaNube(datosAActualizar) {
-    if (!datosAActualizar) return;
+    // 🚀 BLOQUEO DE SEGURIDAD ANTIBORRADO: 
+    // Si la página se está recargando y Firebase no terminó de entregar los datos,
+    // o si el array está totalmente vacío por el arranque, PROHIBIMOS pisar la nube.
+    if (!firebaseCargadoInicialmente || !datosAActualizar || datosAActualizar.length === 0) {
+        console.log("⚠️ Guardado automático bloqueado para evitar borrar la base de datos.");
+        return; 
+    }
+
     database.ref('tienda_productos').set(datosAActualizar)
-        .then(() => console.log("☁️ Base de datos en la nube actualizada"))
+        .then(() => console.log("☁️ Base de datos en la nube actualizada con éxito"))
         .catch(error => console.error("Error al guardar en la nube:", error));
 }
-// Escuchamos la base de datos en tiempo real
+
+// Escuchamos la base de datos en tiempo real de forma segura
 database.ref('tienda_productos').on('value', (snapshot) => {
     const data = snapshot.val();
     
-    // Vaciamos el array actual de forma segura sin romper la variable global
+    // Desactivamos temporalmente el guardado para que el push no genere cortocircuitos
+    const estadoPrevio = firebaseCargadoInicialmente;
+    firebaseCargadoInicialmente = false;
+
+    // Vaciamos el array actual sin romper su referencia global
     products.length = 0; 
 
     if (data) {
-        // Si Firebase devuelve un objeto en vez de un array, lo convertimos automáticamente
+        // Convertimos a formato array si viene como objeto
         const arrProductos = Array.isArray(data) ? data : Object.values(data);
         
-        // Inyectamos los elementos válidos uno por uno
         arrProductos.forEach(item => {
             if (item) products.push(item);
         });
         
         console.log("📦 Productos sincronizados desde Firebase con éxito");
-    }
-    
-    // Si después de leer sigue vacío, le inyectamos la tarjeta de emergencia
-    if (products.length === 0) {
-        console.log("Base de datos vacía en internet. Inicializando tarjeta de prueba...");
+        firebaseCargadoInicialmente = true; // Sincronización exitosa, habilitamos el guardado real
+    } else {
+        // Si la base de datos en internet está virgen de verdad, creamos la primera tarjeta de muestra
+        console.log("Base de datos vacía en internet. Creando producto inicial...");
         products.push({
             id: 1,
             title: "Producto Inicial",
             price: 1000,
-            description: "¡Sincronización con Firebase exitosa! Ya puedes entrar como Admin y cargar tus productos.",
+            description: "¡Sincronización con Firebase exitosa! Entra como Admin para cargar tus productos.",
             images: Array(6).fill("").map(() => "https://placehold.co"),
             currentSeqIndex: 0
         });
+        firebaseCargadoInicialmente = true;
         database.ref('tienda_productos').set(products);
     }
     
-    // 🚀 LA CORRECCIÓN CLAVE AQUÍ:
-    // Le avisamos a la función renderProducts que respete si ya estás logueado como Admin o no
+    // Forzamos al archivo original a dibujar la pantalla con los datos reales de internet
     if (typeof renderProducts === "function") {
-        // Ejecutamos tu render original manteniendo la variable isAdmin intacta
         renderProducts();
     }
 });
