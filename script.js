@@ -12,7 +12,8 @@ let initialProducts = [
 ];
 
 //let products = JSON.parse(localStorage.getItem('tienda_productos')) || initialProducts;
-let products = []; // 👈 Esto borra el pasado y obliga a todos los navegadores a mirar solo a Firebase
+let products = []; // Esto borra el pasado y obliga a todos los navegadores a mirar solo a Firebase
+
 
 
 // Estado Global de la aplicación
@@ -141,8 +142,9 @@ function logoutAdmin() {
     renderProducts();
 }
 
-// Agregar Nueva Tarjeta
+//Agregar Nueva Tarjeta
 function addNewProduct() {
+    if (!products) products = [];
     const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
     products.push({
         id: newId,
