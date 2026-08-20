@@ -108,7 +108,10 @@ function uploadImage(event, productIndex, imageIndex) {
         reader.onload = function(e) {
             products[productIndex].images[imageIndex] = e.target.result;
             saveToLocalStorage(); // Guardamos la foto de forma permanente
-            renderProducts();
+             // 🔥 FUERZA EL REDIBUJADO DE LA IMAGEN EN TU PANTALLA DE ADMIN
+            setTimeout(() => {
+                renderProducts();
+            }, 200);
         };
         reader.readAsDataURL(file);
     }
@@ -155,9 +158,13 @@ function addNewProduct() {
         currentSeqIndex: 0
     });
     saveToLocalStorage(); // Se almacena en la base de datos local
-    renderProducts();
-}
 
+    // 🔥 FUERZA EL REDIBUJADO INMEDIATO PARA EL ADMIN
+    setTimeout(() => {
+        renderProducts();
+    }, 100);
+}
+    
 // Eliminar Tarjeta
 function deleteProduct(id) {
     if(confirm("¿Estás seguro de eliminar este producto?")) {
