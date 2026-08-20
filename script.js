@@ -14,8 +14,7 @@ let initialProducts = [
 // --- LOGICA DE ALMACENAMIENTO (LOCALSTORAGE) ---
 // Modificamos la línea 14 para que el array se quede quieto y espere 
 // a que la función de Firebase-db inyecte los datos de internet antes de dibujar.
-let products = (typeof products !== 'undefined' && products.length > 0) ? products : [];
-
+let products = [];
 
 
 
