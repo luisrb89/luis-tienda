@@ -48,20 +48,18 @@ function saveToLocalStorage() {
     guardarEnLaNube(products);
 }
 
-// Renderizar Tarjetas de Productos (Versión Definitiva Unificada)
+// Renderizar Tarjetas de Productos (Versión Definitiva con Estilos Forzados)
 function renderProducts() {
     const grid = document.getElementById('products-grid');
     if (!grid) return;
     grid.innerHTML = '';
 
-    // Si el array de productos está vacío, mostramos un mensaje amigable en vez de dejar la pantalla en blanco
     if (!products || products.length === 0) {
-        grid.innerHTML = '<p style="text-align:center; padding:40px; color:#666; font-size:18px; width:100%;">Cargando el catálogo de productos industriales...</p>';
+        grid.innerHTML = '<p style="text-align:center; padding:40px; color:#666; font-size:18px; width:100%;">Cargando el catálogo en tiempo real...</p>';
         return;
     }
 
     products.forEach((product, pIndex) => {
-        // Validaciones de seguridad por si alguna propiedad viene vacía desde Firebase
         const seqIndex = product.currentSeqIndex || 0;
         const activeImageIndex = (typeof navigationSequence !== 'undefined' && navigationSequence[seqIndex]) ? navigationSequence[seqIndex] : 0;
         
@@ -75,20 +73,27 @@ function renderProducts() {
         const card = document.createElement('div');
         card.className = `card ${isAdmin ? 'edit-mode' : ''}`;
 
-        // Armamos el HTML de la tarjeta inyectando el Modo Admin de forma condicional limpia
         card.innerHTML = `
-            ${isAdmin ? `<button class="btn-delete" onclick="deleteProduct(${product.id})">&times;</button>` : ''}
+            <!-- 🚀 BOTÓN DE BORRAR: Forzamos su diseño rojo y visible arriba a la derecha -->
+            ${isAdmin ? `
+            <button class="btn-delete" 
+                    style="display: block !important; position: absolute; top: 10px; right: 10px; z-index: 10; background: #dc3545; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 20px; cursor: pointer; line-height: 26px; text-align: center; font-weight: bold;" 
+                    onclick="deleteProduct(${product.id})">
+                &times;
+            </button>
+            ` : ''}
             
-            <div class="carousel">
+            <div class="carousel" style="position: relative;">
                 <button class="carousel-btn btn-prev" onclick="navigateCarousel(${pIndex}, -1)">&lsaquo;</button>
                 <img class="carousel-img" src="${currentImgSrc}" onclick="openZoom('${currentImgSrc}')" alt="Producto">
                 <button class="carousel-btn btn-next" onclick="navigateCarousel(${pIndex}, 1)">&rsaquo;</button>
             </div>
 
+            <!-- Recuadro de fotos forzado -->
             ${isAdmin ? `
-            <div class="file-upload-container" style="padding: 10px 0;">
-                <label style="font-size:12px; color:#555;">Cambiar foto ${activeImageIndex + 1}:</label>
-                <input type="file" accept="image/*" onchange="uploadImage(event, ${pIndex}, ${activeImageIndex})">
+            <div class="file-upload-container" style="display: block !important; padding: 10px; background: #f8f9fa; border-radius: 5px; margin: 10px 0; border: 1px dashed #ccc;">
+                <label style="display: block; font-size: 12px; color: #333; margin-bottom: 5px; font-weight: bold;">Cambiar foto ${activeImageIndex + 1}:</label>
+                <input type="file" accept="image/*" style="font-size: 12px; width: 100%;" onchange="uploadImage(event, ${pIndex}, ${activeImageIndex})">
             </div>
             ` : ''}
 
@@ -107,6 +112,7 @@ function renderProducts() {
         grid.appendChild(card);
     });
 }
+
 
 
 // Navegación del Carrusel en Secuencia
