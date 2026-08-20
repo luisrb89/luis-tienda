@@ -22,7 +22,7 @@ function guardarEnLaNube(datosAActualizar) {
         .catch(error => console.error("Error al guardar en la nube:", error));
 }
 
-// 🚀 REEMPLAZO FINAL: Escuchamos la base de datos transformando el formato
+// Escuchamos la base de datos en tiempo real
 database.ref('tienda_productos').on('value', (snapshot) => {
     const data = snapshot.val();
     
@@ -52,12 +52,13 @@ database.ref('tienda_productos').on('value', (snapshot) => {
             images: Array(6).fill("").map(() => "https://placehold.co"),
             currentSeqIndex: 0
         });
-        // Dejamos el nodo inicial seteado en la nube
         database.ref('tienda_productos').set(products);
     }
     
-    // Forzamos al archivo original a dibujar la pantalla
+    // 🚀 LA CORRECCIÓN CLAVE AQUÍ:
+    // Le avisamos a la función renderProducts que respete si ya estás logueado como Admin o no
     if (typeof renderProducts === "function") {
+        // Ejecutamos tu render original manteniendo la variable isAdmin intacta
         renderProducts();
     }
 });
