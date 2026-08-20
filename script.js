@@ -240,7 +240,7 @@ function sendWhatsapp() {
         return;
     }
     
-    const telefono = "5491100000000"; // Reemplaza por tu número de teléfono real
+    const telefono = "+5491155997673"; // Reemplaza por tu número de teléfono real
     let bodyText = "*Hola, quiero realizar este pedido:*\n\n";
     let total = 0;
 
