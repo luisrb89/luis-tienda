@@ -240,7 +240,7 @@ function sendWhatsapp() {
         return;
     }
     
-    const telefono = "+5491155997673"; // Reemplaza por tu número de teléfono real
+    const telefono = "5491155997673"; // Reemplaza por tu número de teléfono real
     let bodyText = "*Hola, quiero realizar este pedido:*\n\n";
     let total = 0;
 
@@ -249,12 +249,13 @@ function sendWhatsapp() {
         total += item.price;
     });
     
-    bodyText += `\n*Total a pagar: $${total.toLocaleString('es-ar')}*`;
+       bodyText += `\n*Total a pagar: $${total.toLocaleString('es-ar')}*`;
 
     const textoFormateado = encodeURIComponent(bodyText);
-    const urlWhatsapp = `https://whatsapp.com{telefono}&text=${textoFormateado}`;
-    
-    window.open(urlWhatsapp, '_blank');
+    const urlwhatsapp = `https://wa.me/${telefono}?text=${textoFormateado}`;
+
+    window.open(urlwhatsapp, '_blank');
+
 }
 
 
