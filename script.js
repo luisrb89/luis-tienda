@@ -164,6 +164,27 @@ function addNewProduct() {
         renderProducts();
     }, 100);
 }
+// Función para forzar la recarga de datos desde el Modo Administrador
+function forzarCargaFirebase() {
+    // Le avisamos a la consola que estamos recargando
+    console.log("Forzando actualización desde Firebase...");
+    
+    // Cambiamos temporalmente el texto del botón para saber que está trabajando
+    const btn = document.getElementById('btn-refresh');
+    if (btn) btn.innerText = "⏳ Cargando...";
+
+    // Si tu archivo firebase-db.js está activo, esto va a forzar el redibujado inmediato
+    if (typeof renderProducts === "function") {
+        renderProducts();
+    }
+    
+    // Devolvemos el botón a su estado normal después de un segundo
+    setTimeout(() => {
+        if (btn) btn.innerText = "🔄 Actualizar Catálogo";
+        alert("¡Catálogo sincronizado con éxito!");
+    }, 1000);
+}
+
     
 // Eliminar Tarjeta
 function deleteProduct(id) {

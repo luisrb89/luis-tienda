@@ -32,6 +32,10 @@
     <main>
         <div class="admin-panel" id="admin-panel">
             <button class="btn-add" onclick="addNewProduct()">+ Agregar Tarjeta de Producto</button>
+
+            <!-- Agrega este botón dentro de tu contenedor de panel de administrador -->
+             <button id="btn-refresh" class="btn-admin" onclick="forzarCargaFirebase()">🔄 Actualizar Catálogo</button>
+
         </div>
         <div class="products-grid" id="products-grid"></div>
     </main>
