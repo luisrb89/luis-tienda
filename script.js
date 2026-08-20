@@ -23,13 +23,16 @@ let cart = []; // El carrito siempre arranca vacío en cada sesión de usuario
 // El orden de navegación solicitado: 1, 2, 3, 4, 5, 6, 5, 4, 3, 2 (y vuelve a 1)
 const navigationSequence =[0,1,2,3,4,5,6,5,4,3,2,1,0];
 
-// Inicializar la tienda al cargar la página
+// Inicializar la tienda al cargar la página de forma segura
 window.onload = function() {
     // Forzamos que visualmente el contador de compras arranque en 0
     const cartCountEl = document.getElementById('cart-count');
     if (cartCountEl) cartCountEl.innerText = "0";
     
-    renderProducts();
+    // 🚀 ELIMINAMOS el renderProducts() de aquí adentro.
+    // De esta manera, el navegador ya no dibuja la pantalla vacía al actualizar
+    // y espera pacientemente a que Firebase le inyecte los productos reales.
+    console.log("Tienda inicializada. Esperando respuesta de la nube...");
 };
 
 // Función auxiliar para guardar cambios del Administrador de forma permanente
@@ -45,22 +48,36 @@ function saveToLocalStorage() {
     guardarEnLaNube(products);
 }
 
-
-// Renderizar Tarjetas de Productos
+// Renderizar Tarjetas de Productos (Versión Definitiva Unificada)
 function renderProducts() {
     const grid = document.getElementById('products-grid');
     if (!grid) return;
     grid.innerHTML = '';
 
+    // Si el array de productos está vacío, mostramos un mensaje amigable en vez de dejar la pantalla en blanco
+    if (!products || products.length === 0) {
+        grid.innerHTML = '<p style="text-align:center; padding:40px; color:#666; font-size:18px; width:100%;">Cargando el catálogo de productos industriales...</p>';
+        return;
+    }
+
     products.forEach((product, pIndex) => {
-        const activeImageIndex = navigationSequence[product.currentSeqIndex];
-        const currentImgSrc = product.images[activeImageIndex] || "https://placehold.co";
+        // Validaciones de seguridad por si alguna propiedad viene vacía desde Firebase
+        const seqIndex = product.currentSeqIndex || 0;
+        const activeImageIndex = (typeof navigationSequence !== 'undefined' && navigationSequence[seqIndex]) ? navigationSequence[seqIndex] : 0;
+        
+        let currentImgSrc = "https://placehold.co";
+        if (product.images && product.images[activeImageIndex]) {
+            currentImgSrc = product.images[activeImageIndex];
+        } else if (product.images && product.images) {
+            currentImgSrc = product.images;
+        }
 
         const card = document.createElement('div');
         card.className = `card ${isAdmin ? 'edit-mode' : ''}`;
 
+        // Armamos el HTML de la tarjeta inyectando el Modo Admin de forma condicional limpia
         card.innerHTML = `
-            <button class="btn-delete" style="display: ${isAdmin ? 'block' : 'none'}" onclick="deleteProduct(${product.id})">&times;</button>
+            ${isAdmin ? `<button class="btn-delete" onclick="deleteProduct(${product.id})">&times;</button>` : ''}
             
             <div class="carousel">
                 <button class="carousel-btn btn-prev" onclick="navigateCarousel(${pIndex}, -1)">&lsaquo;</button>
@@ -68,25 +85,29 @@ function renderProducts() {
                 <button class="carousel-btn btn-next" onclick="navigateCarousel(${pIndex}, 1)">&rsaquo;</button>
             </div>
 
-            <div class="file-upload-container" style="display: ${isAdmin ? 'block' : 'none'}">
-                <label>Cambiar foto ${activeImageIndex + 1}:</label>
+            ${isAdmin ? `
+            <div class="file-upload-container" style="padding: 10px 0;">
+                <label style="font-size:12px; color:#555;">Cambiar foto ${activeImageIndex + 1}:</label>
                 <input type="file" accept="image/*" onchange="uploadImage(event, ${pIndex}, ${activeImageIndex})">
             </div>
+            ` : ''}
 
             <div class="card-body">
-                <input type="text" class="prod-title" value="${product.title}" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField(${pIndex}, 'title', this.value)">
+                <input type="text" class="prod-title" value="${product.title || 'Nuevo Producto'}" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField(${pIndex}, 'title', this.value)">
                 
                 <div class="prod-price-wrapper">
-                    <input type="number" class="prod-price" value="${product.price}" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField(${pIndex}, 'price', this.value)">
+                    <input type="number" class="prod-price" value="${product.price || 0}" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField(${pIndex}, 'price', this.value)">
                 </div>
                 
-                <textarea class="prod-desc" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField(${pIndex}, 'description', this.value)">${product.description}</textarea>
-                <button class="btn-buy" style="display: ${isAdmin ? 'none' : 'block'}" onclick="addToCart(${pIndex})">Comprar</button>
+                <textarea class="prod-desc" ${!isAdmin ? 'disabled' : ''} onchange="updateProductField(${pIndex}, 'description', this.value)">${product.description || ''}</textarea>
+                
+                ${!isAdmin ? `<button class="btn-buy" onclick="addToCart(${pIndex})">Comprar</button>` : ''}
             </div>
         `;
         grid.appendChild(card);
     });
 }
+
 
 // Navegación del Carrusel en Secuencia
 function navigateCarousel(productIndex, direction) {
