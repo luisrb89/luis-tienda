@@ -96,6 +96,8 @@ function exportarCatalogoTienda() {
     downloadLink.click();
     downloadLink.remove();
 }
+// Agrega un número único al final del enlace para romper la caché del celular
+const respuesta = await fetch(`${URL_JSON_GITHUB}?v=${new Date().getTime()}`);
 
 // Función para leer el archivo subido y actualizar las tarjetas en pantalla
 function importarCatalogoTienda(event) {
@@ -127,4 +129,6 @@ function importarCatalogoTienda(event) {
     };
     lector.readAsText(file);
 }
+
+
 
