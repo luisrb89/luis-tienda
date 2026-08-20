@@ -32,9 +32,8 @@
     <main>
         <div class="admin-panel" id="admin-panel">
             <button class="btn-add" onclick="addNewProduct()">+ Agregar Tarjeta de Producto</button>
-
             <!-- Agrega este botón dentro de tu contenedor de panel de administrador -->
-             <button id="btn-refresh" class="btn-admin" onclick="forzarCargaFirebase()">🔄 Actualizar Catálogo</button>
+             <button id="btn-refresh" class="btn-add" onclick="forzarCargaFirebase()">🔄 Actualizar Catálogo</button>
 
         </div>
         <div class="products-grid" id="products-grid"></div>
@@ -74,16 +73,16 @@
         </div>
     </div>
         
-  
-    <!-- 1. Librerías del motor de Firebase -->
-<script src="https://gstatic.com"></script>
-<script src="https://gstatic.com"></script>
+      <!-- 1. Librerías del motor de Firebase -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
 
-<!-- 2. Tu nuevo archivo de conexión a internet -->
-<script src="firebase-db.js"></script>
+    <!-- 2. Tu archivo de conexión (Forzamos la actualización con ?v=2) -->
+    <script src="firebase-db.js?v=2"></script>
 
- <!-- Al final dejamos tu script original de la tienda -->
-    <script src="script.js"></script>
+    <!-- 3. Tu lógica original (Forzamos la actualización con ?v=2) -->
+    <script src="script.js?v=2"></script>
+
 
 </body>
 </html>
