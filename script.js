@@ -11,7 +11,9 @@ let initialProducts = [
     }
 ];
 
-let products = JSON.parse(localStorage.getItem('tienda_productos')) || initialProducts;
+//let products = JSON.parse(localStorage.getItem('tienda_productos')) || initialProducts;
+let products = []; // 👈 Esto borra el pasado y obliga a todos los navegadores a mirar solo a Firebase
+
 
 // Estado Global de la aplicación
 let isAdmin = false;
@@ -30,9 +32,18 @@ window.onload = function() {
 };
 
 // Función auxiliar para guardar cambios del Administrador de forma permanente
+// function saveToLocalStorage() {
+// localStorage.setItem('tienda_productos', JSON.stringify(products));
+//}para volver a el gusrdado locar activar esto
+// Función auxiliar para guardar cambios del Administrador de forma permanente
 function saveToLocalStorage() {
-    localStorage.setItem('tienda_productos', JSON.stringify(products));
+    // Comentamos o borramos la línea del localStorage local:
+    // localStorage.setItem('tienda_productos', JSON.stringify(products));
+    
+    // 🚀 Llamamos a la función de nuestro nuevo archivo firebase-db.js:
+    guardarEnLaNube(products);
 }
+
 
 // Renderizar Tarjetas de Productos
 function renderProducts() {
