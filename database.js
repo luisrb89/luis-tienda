@@ -1,7 +1,14 @@
-// === ASISTENTE AUTOMÁTICO DE BASE DE DATOS LOCAL ===
+// === ASISTENTE AUTOMÁTICO DE BASE DE DATOS LOCAL Y GITHUB ===
 
-// Inyecta botones de respaldo de datos de forma automática en el Panel de Administración
+// Ruta para que la web busque el JSON automáticamente en tu repositorio
+const URL_JSON_GITHUB = "./productos.json";
+
+// Inyecta botones de respaldo y carga el catálogo automáticamente de GitHub
 window.addEventListener('DOMContentLoaded', () => {
+    // 1. Intentar cargar los productos desde GitHub apenas abre la página
+    cargarProductosDesdeGitHub();
+
+    // 2. Inyección de botones de respaldo de datos en el Panel de Administración
     const adminPanel = document.getElementById('admin-panel');
     if (adminPanel) {
         // Contenedor para que los botones queden estéticos y ordenados
@@ -41,6 +48,39 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// NUEVA FUNCIÓN: Trae los productos actualizados de GitHub automáticamente
+async function cargarProductosDesdeGitHub() {
+    try {
+        const respuesta = await fetch(URL_JSON_GITHUB);
+        if (!respuesta.ok) {
+            throw new Error("No se encontró productos.json en el repositorio.");
+        }
+        const jsonParseado = await respuesta.json();
+        
+        if (Array.isArray(jsonParseado)) {
+            // Guardamos en la variable global y el localStorage
+            products = jsonParseado;
+            localStorage.setItem('tienda_productos', JSON.stringify(products));
+            
+            // Refrescamos la interfaz gráfica de tu tienda
+            if (typeof renderProducts === 'function') {
+                renderProducts();
+            }
+            console.log("¡Productos cargados con éxito desde GitHub!");
+        }
+    } catch (error) {
+        console.warn("No se pudo conectar a GitHub o modo local activo. Cargando respaldo...", error);
+        // Si falla internet, intenta levantar lo último guardado en este dispositivo
+        const productosLocales = localStorage.getItem('tienda_productos');
+        if (productosLocales) {
+            products = JSON.parse(productosLocales);
+            if (typeof renderProducts === 'function') {
+                renderProducts();
+            }
+        }
+    }
+}
+
 // Función para descargar tus productos actuales en un archivo real
 function exportarCatalogoTienda() {
     if (typeof products === 'undefined' || products.length === 0) {
@@ -77,7 +117,7 @@ function importarCatalogoTienda(event) {
                 if (typeof renderProducts === 'function') {
                     renderProducts();
                 }
-                alert("¡Catálogo cargado con éxito en este dispositivo!");
+                alert("¡Catálogo cargado con éxito en este dispositivo! No te olvides de subir este nuevo productos.json a GitHub para que lo vea tu celular.");
             } else {
                 alert("El archivo no tiene el formato de catálogo correcto.");
             }
@@ -87,3 +127,4 @@ function importarCatalogoTienda(event) {
     };
     lector.readAsText(file);
 }
+
